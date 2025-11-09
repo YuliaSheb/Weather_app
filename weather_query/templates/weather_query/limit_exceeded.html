@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Слишком много запросов</title>
+    <style>
+        body { background-color: #cfdaff; text-align: center; font-family: Arial; }
+        .message {
+            background-color: rgba(0,0,0,0.2);
+            color: #4d84e2;
+            padding: 30px;
+            margin: 100px auto;
+            width: 60%;
+            border-radius: 20px;
+            font-size: 22px;
+        }
+        .error {
+            color: red;
+        }
+        .btn {
+            background-color: #74ABE2;
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn:hover { background-color: #3a6fd5; }
+    </style>
+</head>
+<body>
+    <div class="message">
+        <h1 class="error">429</h1>
+        Вы превысили лимит (30 запросов в минуту).
+        <br>Подождите немного и попробуйте снова.
+        <br><br>
+        <a href="{% url 'weather' %}" class="btn">Назад</a>
+    </div>
+</body>
+</html>

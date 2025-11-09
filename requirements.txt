@@ -1,0 +1,7 @@
+Django>=5.0,<6.0
+pycountry
+requests
+psycopg2-binary
+pytest
+pytest-django
+python-dotenv

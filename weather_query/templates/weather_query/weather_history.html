@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>История запросов погоды</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #E6F0FAf;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            background: linear-gradient(to right, #74ABE2, #3a6fd5);
+            box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.25);
+        }
+
+        .left-container {
+            flex: 1;
+            max-width: 30%;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .right-container {
+            flex: 1;
+            max-width: 70%;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 20px;
+            padding: 20px;
+            color: white;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        h2, h3 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .gradienttext {
+            background-image: linear-gradient(to right, #5995fd, #12c2e9);
+            color: transparent;
+            -webkit-background-clip: text;
+        }
+
+        .btn {
+            width: 100%;
+            background-color: #4d84e2;
+            border: none;
+            outline: none;
+            height: 40px;
+            border-radius: 20px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background-color: #3a6fd5;
+        }
+
+        select, input {
+            width: 100%;
+            margin: 5px 0;
+            border-radius: 10px;
+            padding: 8px;
+            border: none;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .weather-card p {
+            margin: 5px 0;
+            font-size: 16px;
+            color: #e6e6e6;
+        }
+
+        .weather-card strong {
+            color: #fff;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 8px;
+        }
+
+        .pagination a, .pagination span {
+            background-color: #4d84e2;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .pagination a:hover {
+            background-color: #3a6fd5;
+        }
+
+        .pagination .current {
+            background-color: #74ABE2;
+            font-weight: bold;
+        }
+
+        @media (max-width: 850px) {
+            .card {
+                flex-direction: column;
+                width: 95%;
+            }
+            .left-container, .right-container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="left-container">
+        <h2 class="gradienttext">Фильтр</h2>
+        <form method="get">
+            <label for="city">Страна:</label>
+            <select name="city" id="city">
+                <option value="">Все</option>
+                {% for c in cities %}
+                    <option value="{{ c }}" {% if c == selected_city %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="date_min">Дата от:</label>
+            <input type="date" name="date_min" id="date_min" value="{{ request.GET.date_min }}">
+
+            <label for="date_max">до:</label>
+            <input type="date" name="date_max" id="date_max" value="{{ request.GET.date_max }}">
+
+            <button type="submit" class="btn">Применить</button>
+            <div style="text-align: center; margin: 10px 0;">
+                <a href="{% url 'export_weather_csv' %}?city={{ selected_city }}" class="btn">
+                    Экспортировать в CSV
+                </a>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <a class="btn" href="{% url 'weather' %}">Назад</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="right-container">
+        <h3 class="gradienttext">История запросов</h3>
+
+        {% if posts %}
+            {% for post in posts %}
+                <div class="weather-card">
+                    <p><strong>Город:</strong> {{ post.city_name }}</p>
+                    <p><strong>Время запроса:</strong> {{ post.timestamp|date:"d.m.Y H:i" }}</p>
+                    <p><strong>Температура:</strong> {{ post.temperature }} {% if post.units == "metric" %}°C{% else %}°F{% endif %}</p>
+                    <p><strong>Описание:</strong> {{ post.description }}</p>
+                    <p><strong>Влажность:</strong> {{ post.humidity }} %</p>
+                    <p><strong>Скорость ветра:</strong> {{ post.wind_speed }} м/с</p>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Нет записей.</p>
+        {% endif %}
+    </div>
+    {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if selected_city %}&city={{ selected_city }}{% endif %}{% if date_min %}&date_min={{ date_min }}{% endif %}{% if date_max %}&date_max={{ date_max }}{% endif %}">&laquo;</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if selected_city %}&city={{ selected_city }}{% endif %}{% if date_min %}&date_min={{ date_min }}{% endif %}{% if date_max %}&date_max={{ date_max }}{% endif %}">Назад</a>
+                {% endif %}
+
+                <span class="current">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if selected_city %}&city={{ selected_city }}{% endif %}{% if date_min %}&date_min={{ date_min }}{% endif %}{% if date_max %}&date_max={{ date_max }}{% endif %}">Вперёд</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_city %}&city={{ selected_city }}{% endif %}{% if date_min %}&date_min={{ date_min }}{% endif %}{% if date_max %}&date_max={{ date_max }}{% endif %}">&raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
